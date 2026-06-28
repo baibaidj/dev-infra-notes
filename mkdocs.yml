@@ -1,0 +1,36 @@
+site_name: Dev Infra Notes
+site_description: 远程开发、WSL、GPU 训练环境和个人 AI 工程实践笔记
+site_url: https://YOUR_GITHUB_USERNAME.github.io/dev-infra-notes/
+repo_url: https://github.com/YOUR_GITHUB_USERNAME/dev-infra-notes
+repo_name: YOUR_GITHUB_USERNAME/dev-infra-notes
+
+theme:
+  name: material
+  language: zh
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+
+nav:
+  - 首页: index.md
+  - 远程开发:
+      - Mac 远程使用 Windows WSL: remote-dev/mac-to-wsl-remote-dev.md
+
