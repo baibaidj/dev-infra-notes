@@ -1,0 +1,1530 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="远程开发、WSL、GPU 训练环境和个人 AI 工程实践笔记">
+      
+      
+      
+        <link rel="canonical" href="https://baibaidj.github.io/dev-infra-notes/remote-dev/mac-to-wsl-remote-dev/">
+      
+      
+        <link rel="prev" href="../..">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Mac 远程使用 Windows WSL - Dev Infra Notes</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#mac-windows-wsl" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="Dev Infra Notes" class="md-header__button md-logo" aria-label="Dev Infra Notes" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Dev Infra Notes
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Mac 远程使用 Windows WSL
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/baibaidj/dev-infra-notes" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    baibaidj/dev-infra-notes
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Dev Infra Notes" class="md-nav__button md-logo" aria-label="Dev Infra Notes" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Dev Infra Notes
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/baibaidj/dev-infra-notes" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    baibaidj/dev-infra-notes
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    远程开发
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    远程开发
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mac 远程使用 Windows WSL
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mac 远程使用 Windows WSL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 推荐架构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 前置条件
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-windows-wsl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Windows 上安装和准备 WSL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-wsl-systemd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 在 WSL 中启用 systemd
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-wsl-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 在 WSL 中安装和配置 SSH
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-windows-tailscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 在 Windows 上安装 Tailscale
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-windows-tailscale-wsl-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 把 Windows 的 Tailscale 端口转发到 WSL SSH
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. 把 Windows 的 Tailscale 端口转发到 WSL SSH">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        可选：开机自动刷新端口代理
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-mac-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 从 Mac 测试 SSH
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-mac-ssh-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 配置 Mac 的 SSH Host
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-vs-code-cursor-remote-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. VS Code / Cursor Remote SSH
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 配置训练环境
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. 配置训练环境">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        基础工具
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        检查 GPU
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python 环境
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tmux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        长任务用 tmux
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-jupyterlab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. JupyterLab 访问方式
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-tailscale-wsl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. 可选高级方案：Tailscale 直接装进 WSL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. 安全建议
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. 常见问题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="15. 常见问题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cannot-detect-wsl-ip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        执行端口转发脚本时提示 Cannot detect WSL IP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mac-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mac SSH 连接超时
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssh-vs-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        能 SSH，但 VS Code 连接失败
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nvidia-smi-wsl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        nvidia-smi 在 WSL 里不可用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        训练中断
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. 快速验证清单
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. 参考资料
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 推荐架构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 前置条件
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-windows-wsl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Windows 上安装和准备 WSL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-wsl-systemd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 在 WSL 中启用 systemd
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-wsl-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 在 WSL 中安装和配置 SSH
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-windows-tailscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 在 Windows 上安装 Tailscale
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-windows-tailscale-wsl-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 把 Windows 的 Tailscale 端口转发到 WSL SSH
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. 把 Windows 的 Tailscale 端口转发到 WSL SSH">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        可选：开机自动刷新端口代理
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-mac-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 从 Mac 测试 SSH
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-mac-ssh-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 配置 Mac 的 SSH Host
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-vs-code-cursor-remote-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. VS Code / Cursor Remote SSH
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 配置训练环境
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. 配置训练环境">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        基础工具
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        检查 GPU
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python 环境
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tmux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        长任务用 tmux
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-jupyterlab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. JupyterLab 访问方式
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-tailscale-wsl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. 可选高级方案：Tailscale 直接装进 WSL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. 安全建议
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. 常见问题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="15. 常见问题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cannot-detect-wsl-ip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        执行端口转发脚本时提示 Cannot detect WSL IP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mac-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mac SSH 连接超时
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssh-vs-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        能 SSH，但 VS Code 连接失败
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nvidia-smi-wsl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        nvidia-smi 在 WSL 里不可用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        训练中断
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. 快速验证清单
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. 参考资料
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="mac-windows-wsl">Mac 远程使用 Windows 机器里的 WSL 进行模型训练和开发</h1>
+<p>目标：把这台 Windows 机器当作一台“带 GPU 的 Linux 开发服务器”使用。日常从 Mac 通过 SSH、VS Code Remote SSH、JupyterLab 进入 WSL，不依赖远程桌面，不关心 Windows 桌面内容。</p>
+<h2 id="1">1. 推荐架构</h2>
+<p>默认推荐：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Mac
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -&gt; Tailscale 私有网络
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    -&gt; Windows 宿主机
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>      -&gt; 端口转发
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        -&gt; WSL Ubuntu 的 SSH 服务
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>          -&gt; CUDA / Conda / Python / Docker / 训练任务
+</code></pre></div>
+<p>为什么默认不直接把 Tailscale 装进 WSL：</p>
+<ul>
+<li>Tailscale 官方把 WSL2 内运行 Tailscale 视为更进阶的场景。</li>
+<li>如果 Windows 宿主和 WSL 内同时运行 Tailscale，可能遇到封包尺寸/MTU 相关问题。</li>
+<li>更稳妥的做法是：Tailscale 跑在 Windows，WSL 只提供 SSH 开发环境，Windows 做一层轻量端口代理。</li>
+</ul>
+<p>高级可选架构：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Mac
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  -&gt; Tailscale
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    -&gt; WSL 内的 Tailscale
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>      -&gt; WSL SSH
+</code></pre></div>
+<p>这条路径更干净，但更依赖 WSL2 网络、systemd、tailscaled 的启动稳定性。除非你明确想把 WSL 当成完全独立的 tailnet 节点，否则建议先用默认架构。</p>
+<h2 id="2">2. 前置条件</h2>
+<p>Windows 机器：</p>
+<ul>
+<li>Windows 11 或较新的 Windows 10。</li>
+<li>已安装 WSL2，建议 Ubuntu 22.04 或 24.04。</li>
+<li>如需 GPU 训练，Windows 端安装支持 WSL 的 NVIDIA 驱动。</li>
+<li>Windows 管理员权限，用于配置端口转发和防火墙。</li>
+<li>Tailscale 已登录同一个 tailnet。</li>
+</ul>
+<p>Mac：</p>
+<ul>
+<li>安装 Tailscale 并登录同一个 tailnet。</li>
+<li>如果 <code>tailscale status</code> 提示 <code>command not found</code>，需要启用 macOS Tailscale CLI，见第 8 节。</li>
+<li>安装 OpenSSH 客户端，macOS 自带。</li>
+<li>推荐安装 VS Code 或 Cursor，并安装 Remote SSH 扩展。</li>
+</ul>
+<p>WSL Ubuntu：</p>
+<ul>
+<li>启用 systemd。</li>
+<li>安装 OpenSSH Server。</li>
+<li>安装开发环境，例如 Conda、uv、Python、CUDA/PyTorch、Docker、tmux、JupyterLab。</li>
+</ul>
+<h2 id="3-windows-wsl">3. Windows 上安装和准备 WSL</h2>
+<p>在 Windows PowerShell 中运行：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">wsl</span> <span class="p">-</span><span class="n">-install</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">wsl</span> <span class="p">-</span><span class="n">-update</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">wsl</span> <span class="p">-</span><span class="n">-status</span>
+</code></pre></div>
+<p>如果还没有 Ubuntu，可以安装：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">wsl</span> <span class="p">-</span><span class="n">-install</span> <span class="n">-d</span> <span class="n">Ubuntu</span><span class="p">-</span><span class="n">24</span><span class="p">.</span><span class="n">04</span>
+</code></pre></div>
+<p>进入 Ubuntu：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">wsl</span> <span class="n">-d</span> <span class="n">Ubuntu</span><span class="p">-</span><span class="n">24</span><span class="p">.</span><span class="n">04</span>
+</code></pre></div>
+<p>如果你的发行版名称不是 <code>Ubuntu-24.04</code>，先查看实际名称：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">wsl</span> <span class="n">-l</span> <span class="n">-v</span>
+</code></pre></div>
+<p>后续运行端口转发脚本时，<code>-Distro</code> 要传这里显示的发行版名称。</p>
+<p>在 WSL 中确认系统信息：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>lsb_release<span class="w"> </span>-a
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>uname<span class="w"> </span>-a
+</code></pre></div>
+<h2 id="4-wsl-systemd">4. 在 WSL 中启用 systemd</h2>
+<p>在 WSL Ubuntu 内编辑 <code>/etc/wsl.conf</code>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sudo<span class="w"> </span>nano<span class="w"> </span>/etc/wsl.conf
+</code></pre></div>
+<p>写入：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">[boot]</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="na">systemd</span><span class="o">=</span><span class="s">true</span>
+</code></pre></div>
+<p>回到 Windows PowerShell，重启 WSL：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">wsl</span> <span class="p">-</span><span class="n">-shutdown</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">wsl</span> <span class="n">-d</span> <span class="n">Ubuntu</span><span class="p">-</span><span class="n">24</span><span class="p">.</span><span class="n">04</span>
+</code></pre></div>
+<p>在 WSL 中验证：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>systemctl<span class="w"> </span>is-system-running
+</code></pre></div>
+<p>如果显示 <code>running</code>、<code>degraded</code> 或能够正常执行 <code>systemctl status</code>，通常就可以继续。</p>
+<h2 id="5-wsl-ssh">5. 在 WSL 中安装和配置 SSH</h2>
+<p>在 WSL Ubuntu 内运行：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>sudo<span class="w"> </span>apt<span class="w"> </span>update
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>openssh-server
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--now<span class="w"> </span>ssh
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>ssh
+</code></pre></div>
+<p>建议使用 SSH key，不建议用密码登录。</p>
+<p>在 Mac 上如果还没有 SSH key：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>ssh-keygen<span class="w"> </span>-t<span class="w"> </span>ed25519<span class="w"> </span>-C<span class="w"> </span><span class="s2">&quot;mac-to-wsl&quot;</span>
+</code></pre></div>
+<p>把 Mac 的公钥加入 WSL。可以先在 Mac 上查看：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>cat<span class="w"> </span>~/.ssh/id_ed25519.pub
+</code></pre></div>
+<p>然后在 WSL 中追加到 <code>~/.ssh/authorized_keys</code>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>~/.ssh
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>chmod<span class="w"> </span><span class="m">700</span><span class="w"> </span>~/.ssh
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>nano<span class="w"> </span>~/.ssh/authorized_keys
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>~/.ssh/authorized_keys
+</code></pre></div>
+<p>可选：关闭密码登录。在 WSL 中编辑：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>sudo<span class="w"> </span>nano<span class="w"> </span>/etc/ssh/sshd_config
+</code></pre></div>
+<p>确认或加入：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>PubkeyAuthentication yes
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>PasswordAuthentication no
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>PermitRootLogin no
+</code></pre></div>
+<p>重启 SSH：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>ssh
+</code></pre></div>
+<h2 id="6-windows-tailscale">6. 在 Windows 上安装 Tailscale</h2>
+<p>先在 Windows 宿主机上安装 Tailscale，再执行后面的 <code>tailscale.exe</code> 命令。否则会看到类似
+<code>无法将 "C:\Program Files\Tailscale\tailscale.exe" 项识别为 cmdlet、函数、脚本文件或可运行程序的名称</code>
+的错误，这通常表示 Tailscale 还没安装，或者安装路径不是脚本假设的路径。</p>
+<p>官方入口：</p>
+<ul>
+<li>下载页：<a href="https://tailscale.com/download/windows">https://tailscale.com/download/windows</a></li>
+<li>最新 Windows <code>.exe</code> 安装包：<a href="https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe">https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe</a></li>
+</ul>
+<p>图形界面安装：</p>
+<ol>
+<li>在 Windows 浏览器打开下载页，下载 <code>Download Tailscale for Windows</code>。</li>
+<li>双击下载到的 <code>.exe</code> 安装包。</li>
+<li>安装完成后，在 Windows 系统托盘找到 Tailscale 图标。</li>
+<li>点击或右键 Tailscale 图标，选择 <code>Sign in to your network</code>。</li>
+<li>浏览器打开 Tailscale 登录页后，点击 <code>Log in to connect a device to your tailnet</code>。</li>
+<li>用你准备给 Mac 和 Windows 共同使用的同一个身份登录，例如 Google、Microsoft、GitHub、Apple、邮箱或公司 SSO。</li>
+<li>如果你之前没有 Tailscale 账号，按页面提示创建账号；Tailscale 会为这个账号创建一个 tailnet。这里的 tailnet 就是你的 Tailscale 私有网络，不需要手动填写 VPN 服务器地址。</li>
+<li>登录完成后，回到 Windows 桌面，确认 Tailscale 托盘图标显示已连接。</li>
+<li>在 Mac 上也安装并登录 Tailscale，必须使用同一个账号，或者使用已被邀请进同一个 tailnet 的账号。</li>
+</ol>
+<p>如果这是公司或团队的 tailnet，不要随便用个人账号创建新 tailnet；应该使用公司指定的邮箱/SSO 登录，或者让管理员邀请你的账号加入已有 tailnet。</p>
+<p>也可以在 Windows PowerShell 中下载安装包并启动安装器：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nv">$Installer</span> <span class="p">=</span> <span class="s2">&quot;$env:TEMP\tailscale-setup-latest.exe&quot;</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="nb">Invoke-WebRequest</span> <span class="p">`</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>    <span class="n">-Uri</span> <span class="s2">&quot;https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe&quot;</span> <span class="p">`</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>    <span class="n">-OutFile</span> <span class="nv">$Installer</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="nb">Start-Process</span> <span class="n">-FilePath</span> <span class="nv">$Installer</span> <span class="n">-Wait</span>
+</code></pre></div>
+<p>安装并登录后，在 Windows PowerShell 中先定位 <code>tailscale.exe</code>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nv">$TailscaleExe</span> <span class="p">=</span> <span class="p">@(</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>    <span class="s2">&quot;$env:ProgramFiles\Tailscale\tailscale.exe&quot;</span><span class="p">,</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>    <span class="s2">&quot;${env:ProgramFiles(x86)}\Tailscale\tailscale.exe&quot;</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="p">)</span> <span class="p">|</span> <span class="nb">Where-Object</span> <span class="p">{</span> <span class="nb">Test-Path</span> <span class="nv">$_</span> <span class="p">}</span> <span class="p">|</span> <span class="nb">Select-Object</span> <span class="n">-First</span> <span class="n">1</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="k">if</span> <span class="p">(</span><span class="o">-not</span> <span class="nv">$TailscaleExe</span><span class="p">)</span> <span class="p">{</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>    <span class="k">throw</span> <span class="s2">&quot;Cannot find tailscale.exe. Install Tailscale from https://tailscale.com/download/windows first.&quot;</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="p">}</span>
+</code></pre></div>
+<p>查看 Windows 的 Tailscale IPv4：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="p">&amp;</span> <span class="nv">$TailscaleExe</span> <span class="n">ip</span> <span class="p">-</span><span class="n">4</span>
+</code></pre></div>
+<p>也可以在 Tailscale 管理后台开启 MagicDNS。开启后，Mac 可以用类似下面的主机名访问：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>windows-hostname.tailnet-name.ts.net
+</code></pre></div>
+<h2 id="7-windows-tailscale-wsl-ssh">7. 把 Windows 的 Tailscale 端口转发到 WSL SSH</h2>
+<p>WSL2 的 IP 可能会变化，所以建议用一个 PowerShell 脚本自动刷新端口代理。</p>
+<p>先在 Windows PowerShell 中确认 WSL 发行版名称：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="n">wsl</span> <span class="n">-l</span> <span class="n">-v</span>
+</code></pre></div>
+<p>后面执行脚本时，<code>-Distro</code> 必须和这里显示的名称完全一致。例如输出里如果是 <code>Ubuntu</code>，就传
+<code>-Distro Ubuntu</code>。</p>
+<p>在 Windows 管理员 PowerShell 中创建目录：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nb">New-Item</span> <span class="n">-ItemType</span> <span class="n">Directory</span> <span class="n">-Force</span> <span class="n">C</span><span class="p">:\</span><span class="n">Scripts</span>
+</code></pre></div>
+<p>下载端口转发脚本。脚本源码在
+<a href="https://github.com/baibaidj/dev-infra-notes/blob/main/scripts/remote-dev/update-wsl-ssh-portproxy.ps1">update-wsl-ssh-portproxy.ps1</a>。</p>
+<p>方式一：鼠标点击下载。</p>
+<p><a class="md-button md-button--primary" download="update-wsl-ssh-portproxy.ps1" href="https://raw.githubusercontent.com/baibaidj/dev-infra-notes/main/scripts/remote-dev/update-wsl-ssh-portproxy.ps1">下载 update-wsl-ssh-portproxy.ps1</a></p>
+<p>如果浏览器直接打开了脚本文本，把页面另存为：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>C:\Scripts\update-wsl-ssh-portproxy.ps1
+</code></pre></div>
+<p>方式二：PowerShell 命令行下载。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="nv">$ScriptUrl</span> <span class="p">=</span> <span class="s2">&quot;https://raw.githubusercontent.com/baibaidj/dev-infra-notes/main/scripts/remote-dev/update-wsl-ssh-portproxy.ps1&quot;</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="nb">Invoke-WebRequest</span> <span class="n">-Uri</span> <span class="nv">$ScriptUrl</span> <span class="n">-OutFile</span> <span class="n">C</span><span class="p">:\</span><span class="n">Scripts</span><span class="p">\</span><span class="nb">update-wsl</span><span class="n">-ssh-portproxy</span><span class="p">.</span><span class="n">ps1</span>
+</code></pre></div>
+<p>执行脚本。普通 PowerShell 会弹出 UAC 管理员权限确认；如果你已经在管理员 PowerShell 中运行，则会直接执行。</p>
+<p>下面示例假设发行版名称是 <code>Ubuntu</code>；如果你的输出是 <code>Ubuntu-24.04</code>，把参数改成 <code>-Distro Ubuntu-24.04</code>。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="n">powershell</span> <span class="n">-ExecutionPolicy</span> <span class="n">Bypass</span> <span class="o">-File</span> <span class="n">C</span><span class="p">:\</span><span class="n">Scripts</span><span class="p">\</span><span class="nb">update-wsl</span><span class="n">-ssh-portproxy</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Distro</span> <span class="n">Ubuntu</span> <span class="n">-ListenPort</span> <span class="n">2222</span>
+</code></pre></div>
+<p>查看端口代理：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="n">netsh</span> <span class="n">interface</span> <span class="n">portproxy</span> <span class="n">show</span> <span class="n">all</span>
+</code></pre></div>
+<h3 id="_1">可选：开机自动刷新端口代理</h3>
+<p>WSL IP 变化时，端口代理需要刷新。可以创建计划任务，让 Windows 登录时自动运行脚本。</p>
+<p>管理员 PowerShell：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="nv">$Action</span> <span class="p">=</span> <span class="nb">New-ScheduledTaskAction</span> <span class="n">-Execute</span> <span class="s2">&quot;powershell.exe&quot;</span> <span class="n">-Argument</span> <span class="s2">&quot;-ExecutionPolicy Bypass -File C:\Scripts\update-wsl-ssh-portproxy.ps1 -Distro Ubuntu -ListenPort 2222&quot;</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="nv">$Trigger</span> <span class="p">=</span> <span class="nb">New-ScheduledTaskTrigger</span> <span class="n">-AtLogOn</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="nv">$Principal</span> <span class="p">=</span> <span class="nb">New-ScheduledTaskPrincipal</span> <span class="n">-UserId</span> <span class="s2">&quot;$env:USERDOMAIN\$env:USERNAME&quot;</span> <span class="n">-RunLevel</span> <span class="n">Highest</span>
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="nb">Register-ScheduledTask</span> <span class="n">-TaskName</span> <span class="s2">&quot;Update WSL SSH PortProxy&quot;</span> <span class="n">-Action</span> <span class="nv">$Action</span> <span class="n">-Trigger</span> <span class="nv">$Trigger</span> <span class="n">-Principal</span> <span class="nv">$Principal</span> <span class="n">-Force</span>
+</code></pre></div>
+<p>也可以在 Windows 重启、WSL 重启、Tailscale 重新登录后手动运行脚本一次。</p>
+<h2 id="8-mac-ssh">8. 从 Mac 测试 SSH</h2>
+<p>先确认 Mac 已连接 Tailscale：</p>
+<p>如果官网已经显示 Mac 加入 tailnet，但 macOS 终端里 <code>tailscale status</code> 提示 <code>command not found</code>，通常只是 Tailscale App 没有把 CLI 加到 shell 的 <code>PATH</code>。先试完整路径：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>/Applications/Tailscale.app/Contents/MacOS/Tailscale<span class="w"> </span>status
+</code></pre></div>
+<p>如果这个命令可用，可以加一个 shell alias：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;alias tailscale=&quot;/Applications/Tailscale.app/Contents/MacOS/Tailscale&quot;&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.zshrc
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="nb">source</span><span class="w"> </span>~/.zshrc
+</code></pre></div>
+<p>如果安装的是 Tailscale Standalone 版本，也可以在 macOS Tailscale App 中打开：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>Tailscale -&gt; Settings -&gt; CLI integration -&gt; Show me how -&gt; Install Now
+</code></pre></div>
+<p>这会把 <code>tailscale</code> 命令安装到 <code>/usr/local/bin/tailscale</code>。之后再运行：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>tailscale<span class="w"> </span>status
+</code></pre></div>
+<p>用 Windows 的 Tailscale IP 连接：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">2222</span><span class="w"> </span>your-wsl-user@100.x.y.z
+</code></pre></div>
+<p>如果启用了 MagicDNS：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">2222</span><span class="w"> </span>your-wsl-user@windows-hostname.tailnet-name.ts.net
+</code></pre></div>
+<p>成功后，你应该直接进入 WSL 的 Linux shell，而不是 Windows shell。</p>
+<h2 id="9-mac-ssh-host">9. 配置 Mac 的 SSH Host</h2>
+<p>在 Mac 上编辑 <code>~/.ssh/config</code>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>Host wsl-gpu
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>    HostName windows-hostname.tailnet-name.ts.net
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>    Port 2222
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a>    User your-wsl-user
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a>    IdentityFile ~/.ssh/id_ed25519
+<a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a>    ServerAliveInterval 30
+<a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a>    ServerAliveCountMax 6
+</code></pre></div>
+<p>之后连接只需要：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>ssh<span class="w"> </span>wsl-gpu
+</code></pre></div>
+<h2 id="10-vs-code-cursor-remote-ssh">10. VS Code / Cursor Remote SSH</h2>
+<p>Mac 上安装：</p>
+<ul>
+<li>VS Code 或 Cursor。</li>
+<li>Remote SSH 扩展。</li>
+</ul>
+<p>打开命令面板：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>Remote-SSH: Connect to Host...
+</code></pre></div>
+<p>选择：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>wsl-gpu
+</code></pre></div>
+<p>连接后，VS Code Server 会安装在 WSL 用户目录下。之后你可以直接打开 WSL 里的项目目录，例如：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>~/projects
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="nb">cd</span><span class="w"> </span>~/projects
+<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a>git<span class="w"> </span>clone<span class="w"> </span>&lt;your-repo&gt;
+</code></pre></div>
+<p>日常体验会像使用远程 Linux 服务器：</p>
+<ul>
+<li>代码编辑在 Mac。</li>
+<li>终端运行在 WSL。</li>
+<li>Python、Conda、CUDA、PyTorch 都使用 WSL 环境。</li>
+<li>训练进程实际跑在 Windows 机器的 GPU 上。</li>
+</ul>
+<h2 id="11">11. 配置训练环境</h2>
+<h3 id="_2">基础工具</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a>sudo<span class="w"> </span>apt<span class="w"> </span>update
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>build-essential<span class="w"> </span>git<span class="w"> </span>curl<span class="w"> </span>wget<span class="w"> </span>tmux<span class="w"> </span>htop<span class="w"> </span>nvtop<span class="w"> </span>unzip
+</code></pre></div>
+<h3 id="gpu">检查 GPU</h3>
+<p>在 WSL 中运行：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a>nvidia-smi
+</code></pre></div>
+<p>如果能看到 GPU、驱动版本和显存信息，说明 WSL GPU 通道可用。</p>
+<h3 id="python">Python 环境</h3>
+<p>推荐用 Miniforge、Micromamba、uv 或 Conda 管理环境。示例：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>~/projects
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a><span class="nb">cd</span><span class="w"> </span>~/projects
+<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+<a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
+</code></pre></div>
+<p>安装 PyTorch 时建议根据当前 CUDA/驱动版本去 PyTorch 官网选择命令，避免 CUDA 版本不匹配。</p>
+<h3 id="tmux">长任务用 tmux</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a>tmux<span class="w"> </span>new<span class="w"> </span>-s<span class="w"> </span>train
+</code></pre></div>
+<p>启动训练：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a>python<span class="w"> </span>train.py
+</code></pre></div>
+<p>断开 tmux：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>Ctrl-b d
+</code></pre></div>
+<p>重新进入：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>tmux<span class="w"> </span>attach<span class="w"> </span>-t<span class="w"> </span>train
+</code></pre></div>
+<p>这样 Mac 断线或合盖时，训练不会因为 SSH 断开而停止。</p>
+<h2 id="12-jupyterlab">12. JupyterLab 访问方式</h2>
+<p>在 WSL 中安装：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>jupyterlab
+</code></pre></div>
+<p>推荐用 SSH 隧道，不把 Jupyter 直接暴露给网络。</p>
+<p>在 Mac 上运行：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a>ssh<span class="w"> </span>-L<span class="w"> </span><span class="m">8888</span>:localhost:8888<span class="w"> </span>wsl-gpu
+</code></pre></div>
+<p>在 SSH 会话里的 WSL 中启动：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a>jupyter<span class="w"> </span>lab<span class="w"> </span>--ip<span class="o">=</span><span class="m">127</span>.0.0.1<span class="w"> </span>--port<span class="o">=</span><span class="m">8888</span>
+</code></pre></div>
+<p>Mac 浏览器打开：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a>http://localhost:8888
+</code></pre></div>
+<h2 id="13-tailscale-wsl">13. 可选高级方案：Tailscale 直接装进 WSL</h2>
+<p>如果你希望 WSL 自己成为 tailnet 节点，可以在 WSL 内安装 Tailscale，并从 Mac 直接 SSH 到 WSL 的 Tailscale IP。</p>
+<p>架构：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a>Mac -&gt; Tailscale -&gt; WSL Tailscale IP -&gt; WSL SSH
+</code></pre></div>
+<p>注意事项：</p>
+<ul>
+<li>不建议 Windows 宿主机和 WSL 内同时承担同一访问路径。</li>
+<li>如果 Windows 宿主已经运行 Tailscale，优先用默认方案。</li>
+<li>确认 WSL 已启用 systemd，否则 tailscaled 管理会麻烦。</li>
+<li>如果遇到连接异常、无法握手、网络不稳定，先退回默认方案。</li>
+</ul>
+<h2 id="14">14. 安全建议</h2>
+<ul>
+<li>不要把 SSH、Jupyter、code-server 直接暴露到公网。</li>
+<li>SSH 优先使用 key，关闭密码登录。</li>
+<li>Windows 防火墙只允许 Tailscale IP 上的转发端口。</li>
+<li>不要用 root 登录 SSH。</li>
+<li>训练机器上如果有云厂商密钥、GitHub token、数据集凭证，建议用最小权限和单独账号。</li>
+<li>JupyterLab 优先通过 SSH 隧道访问。</li>
+<li>给训练会话使用 tmux，避免网络断开导致任务中断。</li>
+</ul>
+<h2 id="15">15. 常见问题</h2>
+<h3 id="cannot-detect-wsl-ip">执行端口转发脚本时提示 Cannot detect WSL IP</h3>
+<p>这个错误表示 Windows 脚本没有从 WSL 里读到 Linux IP。先在 Windows PowerShell 中检查发行版名称：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a><span class="n">wsl</span> <span class="n">-l</span> <span class="n">-v</span>
+</code></pre></div>
+<p>确认运行 <code>C:\Scripts\update-wsl-ssh-portproxy.ps1</code> 时传入的 <code>-Distro</code> 和输出中的名称完全一致。常见情况是示例里写的是
+<code>Ubuntu-24.04</code>，但你的机器实际显示为 <code>Ubuntu</code>。</p>
+<p>然后在 Windows PowerShell 中直接测试：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a><span class="n">wsl</span><span class="p">.</span><span class="n">exe</span> <span class="n">-d</span> <span class="n">Ubuntu</span><span class="p">-</span><span class="n">24</span><span class="p">.</span><span class="n">04</span> <span class="p">--</span> <span class="n">hostname</span> <span class="n">-I</span>
+</code></pre></div>
+<p>如果你的发行版名称不是 <code>Ubuntu-24.04</code>，把命令里的名称替换成 <code>wsl -l -v</code> 看到的实际名称。这个命令应该输出类似
+<code>172.28.x.x</code> 的地址。</p>
+<p>如果没有输出，先启动一次 WSL：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a><span class="n">wsl</span> <span class="n">-d</span> <span class="n">Ubuntu</span><span class="p">-</span><span class="n">24</span><span class="p">.</span><span class="n">04</span>
+</code></pre></div>
+<p>进入 WSL 后检查网络：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a>hostname<span class="w"> </span>-I
+<a id="__codelineno-55-2" name="__codelineno-55-2" href="#__codelineno-55-2"></a>ip<span class="w"> </span>-4<span class="w"> </span>addr<span class="w"> </span>show<span class="w"> </span>eth0
+</code></pre></div>
+<p>确认能看到 WSL 的 IPv4 后，重新运行端口转发脚本，并在 UAC 提示中确认管理员权限：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a><span class="n">powershell</span> <span class="n">-ExecutionPolicy</span> <span class="n">Bypass</span> <span class="o">-File</span> <span class="n">C</span><span class="p">:\</span><span class="n">Scripts</span><span class="p">\</span><span class="nb">update-wsl</span><span class="n">-ssh-portproxy</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Distro</span> <span class="n">Ubuntu</span><span class="p">-</span><span class="n">24</span><span class="p">.</span><span class="n">04</span> <span class="n">-ListenPort</span> <span class="n">2222</span>
+</code></pre></div>
+<h3 id="mac-ssh">Mac SSH 连接超时</h3>
+<p>检查：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a>tailscale<span class="w"> </span>status
+<a id="__codelineno-57-2" name="__codelineno-57-2" href="#__codelineno-57-2"></a>ssh<span class="w"> </span>-vvv<span class="w"> </span>wsl-gpu
+</code></pre></div>
+<p>Windows 上检查：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a><span class="p">&amp;</span> <span class="s2">&quot;$env:ProgramFiles\Tailscale\tailscale.exe&quot;</span> <span class="n">status</span>
+<a id="__codelineno-58-2" name="__codelineno-58-2" href="#__codelineno-58-2"></a><span class="n">netsh</span> <span class="n">interface</span> <span class="n">portproxy</span> <span class="n">show</span> <span class="n">all</span>
+</code></pre></div>
+<p>WSL 中检查：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a>systemctl<span class="w"> </span>status<span class="w"> </span>ssh
+<a id="__codelineno-59-2" name="__codelineno-59-2" href="#__codelineno-59-2"></a>hostname<span class="w"> </span>-I
+</code></pre></div>
+<p>如果 WSL IP 变了，重新运行：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-60-1" name="__codelineno-60-1" href="#__codelineno-60-1"></a><span class="n">powershell</span> <span class="n">-ExecutionPolicy</span> <span class="n">Bypass</span> <span class="o">-File</span> <span class="n">C</span><span class="p">:\</span><span class="n">Scripts</span><span class="p">\</span><span class="nb">update-wsl</span><span class="n">-ssh-portproxy</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Distro</span> <span class="n">Ubuntu</span><span class="p">-</span><span class="n">24</span><span class="p">.</span><span class="n">04</span> <span class="n">-ListenPort</span> <span class="n">2222</span>
+</code></pre></div>
+<h3 id="ssh-vs-code">能 SSH，但 VS Code 连接失败</h3>
+<p>在 Mac 上先确认普通 SSH 可用：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a>ssh<span class="w"> </span>wsl-gpu
+</code></pre></div>
+<p>然后在 VS Code 中执行：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a>Remote-SSH: Kill VS Code Server on Host...
+</code></pre></div>
+<p>再重新连接。</p>
+<h3 id="nvidia-smi-wsl">nvidia-smi 在 WSL 里不可用</h3>
+<p>检查：</p>
+<ul>
+<li>Windows 是否安装了支持 WSL 的 NVIDIA 驱动。</li>
+<li>WSL 是否为 WSL2。</li>
+<li>Windows 是否需要重启。</li>
+<li>在 Windows PowerShell 中运行 <code>wsl --update</code>。</li>
+</ul>
+<h3 id="_3">训练中断</h3>
+<p>不要直接在裸 SSH 会话里跑长任务。使用：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a>tmux
+</code></pre></div>
+<p>或者把任务交给 <code>systemd</code>、<code>supervisor</code>、<code>nohup</code>、<code>accelerate launch</code> 等更适合长期运行的方式。</p>
+<h2 id="16">16. 快速验证清单</h2>
+<p>Windows：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-64-1" name="__codelineno-64-1" href="#__codelineno-64-1"></a><span class="n">wsl</span> <span class="p">-</span><span class="n">-status</span>
+<a id="__codelineno-64-2" name="__codelineno-64-2" href="#__codelineno-64-2"></a><span class="p">&amp;</span> <span class="s2">&quot;$env:ProgramFiles\Tailscale\tailscale.exe&quot;</span> <span class="n">status</span>
+<a id="__codelineno-64-3" name="__codelineno-64-3" href="#__codelineno-64-3"></a><span class="n">netsh</span> <span class="n">interface</span> <span class="n">portproxy</span> <span class="n">show</span> <span class="n">all</span>
+</code></pre></div>
+<p>WSL：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-65-1" name="__codelineno-65-1" href="#__codelineno-65-1"></a>systemctl<span class="w"> </span>status<span class="w"> </span>ssh
+<a id="__codelineno-65-2" name="__codelineno-65-2" href="#__codelineno-65-2"></a>nvidia-smi
+</code></pre></div>
+<p>Mac：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-66-1" name="__codelineno-66-1" href="#__codelineno-66-1"></a>tailscale<span class="w"> </span>status
+<a id="__codelineno-66-2" name="__codelineno-66-2" href="#__codelineno-66-2"></a>ssh<span class="w"> </span>wsl-gpu
+</code></pre></div>
+<p>进入 WSL 后：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-67-1" name="__codelineno-67-1" href="#__codelineno-67-1"></a>whoami
+<a id="__codelineno-67-2" name="__codelineno-67-2" href="#__codelineno-67-2"></a><span class="nb">pwd</span>
+<a id="__codelineno-67-3" name="__codelineno-67-3" href="#__codelineno-67-3"></a>nvidia-smi
+<a id="__codelineno-67-4" name="__codelineno-67-4" href="#__codelineno-67-4"></a>tmux<span class="w"> </span>new<span class="w"> </span>-s<span class="w"> </span>smoke-test
+</code></pre></div>
+<h2 id="17">17. 参考资料</h2>
+<ul>
+<li>Microsoft WSL 安装文档：https://learn.microsoft.com/en-us/windows/wsl/install</li>
+<li>Microsoft WSL systemd 文档：https://learn.microsoft.com/en-us/windows/wsl/systemd</li>
+<li>Microsoft WSL 网络文档：https://learn.microsoft.com/en-us/windows/wsl/networking</li>
+<li>Microsoft WSL GPU 计算文档：https://learn.microsoft.com/en-us/windows/wsl/tutorials/gpu-compute</li>
+<li>Tailscale WSL2 文档：https://tailscale.com/docs/install/windows/wsl2</li>
+<li>Tailscale SSH 文档：https://tailscale.com/kb/1193/tailscale-ssh</li>
+<li>VS Code Remote SSH 文档：https://code.visualstudio.com/docs/remote/ssh</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
