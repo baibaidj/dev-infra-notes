@@ -255,10 +255,24 @@ wsl -l -v
 New-Item -ItemType Directory -Force C:\Scripts
 ```
 
-从本仓库复制脚本：
+下载端口转发脚本。脚本源码在
+[update-wsl-ssh-portproxy.ps1](https://github.com/baibaidj/dev-infra-notes/blob/main/scripts/remote-dev/update-wsl-ssh-portproxy.ps1)。
+
+方式一：鼠标点击下载。
+
+[下载 update-wsl-ssh-portproxy.ps1](https://raw.githubusercontent.com/baibaidj/dev-infra-notes/main/scripts/remote-dev/update-wsl-ssh-portproxy.ps1){ .md-button .md-button--primary download="update-wsl-ssh-portproxy.ps1" }
+
+如果浏览器直接打开了脚本文本，把页面另存为：
+
+```text
+C:\Scripts\update-wsl-ssh-portproxy.ps1
+```
+
+方式二：PowerShell 命令行下载。
 
 ```powershell
-Copy-Item .\scripts\remote-dev\update-wsl-ssh-portproxy.ps1 C:\Scripts\update-wsl-ssh-portproxy.ps1 -Force
+$ScriptUrl = "https://raw.githubusercontent.com/baibaidj/dev-infra-notes/main/scripts/remote-dev/update-wsl-ssh-portproxy.ps1"
+Invoke-WebRequest -Uri $ScriptUrl -OutFile C:\Scripts\update-wsl-ssh-portproxy.ps1
 ```
 
 执行脚本。普通 PowerShell 会弹出 UAC 管理员权限确认；如果你已经在管理员 PowerShell 中运行，则会直接执行。
