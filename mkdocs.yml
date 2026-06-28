@@ -1,8 +1,8 @@
 site_name: Dev Infra Notes
 site_description: 远程开发、WSL、GPU 训练环境和个人 AI 工程实践笔记
-site_url: https://YOUR_GITHUB_USERNAME.github.io/dev-infra-notes/
-repo_url: https://github.com/YOUR_GITHUB_USERNAME/dev-infra-notes
-repo_name: YOUR_GITHUB_USERNAME/dev-infra-notes
+site_url: https://baibaidj.github.io/dev-infra-notes/
+repo_url: https://github.com/baibaidj/dev-infra-notes
+repo_name: baibaidj/dev-infra-notes
 
 theme:
   name: material
