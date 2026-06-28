@@ -45,6 +45,7 @@ Windows 机器：
 Mac：
 
 - 安装 Tailscale 并登录同一个 tailnet。
+- 如果 `tailscale status` 提示 `command not found`，需要启用 macOS Tailscale CLI，见第 8 节。
 - 安装 OpenSSH 客户端，macOS 自带。
 - 推荐安装 VS Code 或 Cursor，并安装 Remote SSH 扩展。
 
@@ -82,7 +83,7 @@ wsl -d Ubuntu-24.04
 wsl -l -v
 ```
 
-后续脚本里的 `$Distro` 要改成这里显示的发行版名称。
+后续运行端口转发脚本时，`-Distro` 要传这里显示的发行版名称。
 
 在 WSL 中确认系统信息：
 
@@ -177,12 +178,56 @@ sudo systemctl restart ssh
 
 ## 6. 在 Windows 上安装 Tailscale
 
-在 Windows 上安装 Tailscale，登录你的账号，并确认 Mac 和 Windows 都在同一个 tailnet。
+先在 Windows 宿主机上安装 Tailscale，再执行后面的 `tailscale.exe` 命令。否则会看到类似
+`无法将 "C:\Program Files\Tailscale\tailscale.exe" 项识别为 cmdlet、函数、脚本文件或可运行程序的名称`
+的错误，这通常表示 Tailscale 还没安装，或者安装路径不是脚本假设的路径。
 
-Windows PowerShell 中查看 Windows 的 Tailscale IPv4：
+官方入口：
+
+- 下载页：<https://tailscale.com/download/windows>
+- 最新 Windows `.exe` 安装包：<https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe>
+
+图形界面安装：
+
+1. 在 Windows 浏览器打开下载页，下载 `Download Tailscale for Windows`。
+2. 双击下载到的 `.exe` 安装包。
+3. 安装完成后，在 Windows 系统托盘找到 Tailscale 图标。
+4. 点击或右键 Tailscale 图标，选择 `Sign in to your network`。
+5. 浏览器打开 Tailscale 登录页后，点击 `Log in to connect a device to your tailnet`。
+6. 用你准备给 Mac 和 Windows 共同使用的同一个身份登录，例如 Google、Microsoft、GitHub、Apple、邮箱或公司 SSO。
+7. 如果你之前没有 Tailscale 账号，按页面提示创建账号；Tailscale 会为这个账号创建一个 tailnet。这里的 tailnet 就是你的 Tailscale 私有网络，不需要手动填写 VPN 服务器地址。
+8. 登录完成后，回到 Windows 桌面，确认 Tailscale 托盘图标显示已连接。
+9. 在 Mac 上也安装并登录 Tailscale，必须使用同一个账号，或者使用已被邀请进同一个 tailnet 的账号。
+
+如果这是公司或团队的 tailnet，不要随便用个人账号创建新 tailnet；应该使用公司指定的邮箱/SSO 登录，或者让管理员邀请你的账号加入已有 tailnet。
+
+也可以在 Windows PowerShell 中下载安装包并启动安装器：
 
 ```powershell
-& "$env:ProgramFiles\Tailscale\tailscale.exe" ip -4
+$Installer = "$env:TEMP\tailscale-setup-latest.exe"
+Invoke-WebRequest `
+    -Uri "https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe" `
+    -OutFile $Installer
+Start-Process -FilePath $Installer -Wait
+```
+
+安装并登录后，在 Windows PowerShell 中先定位 `tailscale.exe`：
+
+```powershell
+$TailscaleExe = @(
+    "$env:ProgramFiles\Tailscale\tailscale.exe",
+    "${env:ProgramFiles(x86)}\Tailscale\tailscale.exe"
+) | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+if (-not $TailscaleExe) {
+    throw "Cannot find tailscale.exe. Install Tailscale from https://tailscale.com/download/windows first."
+}
+```
+
+查看 Windows 的 Tailscale IPv4：
+
+```powershell
+& $TailscaleExe ip -4
 ```
 
 也可以在 Tailscale 管理后台开启 MagicDNS。开启后，Mac 可以用类似下面的主机名访问：
@@ -195,63 +240,33 @@ windows-hostname.tailnet-name.ts.net
 
 WSL2 的 IP 可能会变化，所以建议用一个 PowerShell 脚本自动刷新端口代理。
 
+先在 Windows PowerShell 中确认 WSL 发行版名称：
+
+```powershell
+wsl -l -v
+```
+
+后面执行脚本时，`-Distro` 必须和这里显示的名称完全一致。例如输出里如果是 `Ubuntu`，就传
+`-Distro Ubuntu`。
+
 在 Windows 管理员 PowerShell 中创建目录：
 
 ```powershell
 New-Item -ItemType Directory -Force C:\Scripts
 ```
 
-创建文件：
+从本仓库复制脚本：
 
 ```powershell
-notepad C:\Scripts\update-wsl-ssh-portproxy.ps1
+Copy-Item .\scripts\remote-dev\update-wsl-ssh-portproxy.ps1 C:\Scripts\update-wsl-ssh-portproxy.ps1 -Force
 ```
 
-写入：
+执行脚本。普通 PowerShell 会弹出 UAC 管理员权限确认；如果你已经在管理员 PowerShell 中运行，则会直接执行。
+
+下面示例假设发行版名称是 `Ubuntu`；如果你的输出是 `Ubuntu-24.04`，把参数改成 `-Distro Ubuntu-24.04`。
 
 ```powershell
-$ErrorActionPreference = "Stop"
-
-$Distro = "Ubuntu-24.04"
-$ListenPort = 2222
-$TailscaleExe = "$env:ProgramFiles\Tailscale\tailscale.exe"
-
-$WslIp = (wsl.exe -d $Distro hostname -I).Trim().Split()[0]
-$TailscaleIp = (& $TailscaleExe ip -4).Trim()
-
-if (-not $WslIp) {
-    throw "Cannot detect WSL IP"
-}
-
-if (-not $TailscaleIp) {
-    throw "Cannot detect Tailscale IPv4"
-}
-
-netsh interface portproxy delete v4tov4 listenaddress=$TailscaleIp listenport=$ListenPort 2>$null
-netsh interface portproxy add v4tov4 listenaddress=$TailscaleIp listenport=$ListenPort connectaddress=$WslIp connectport=22
-
-$RuleName = "WSL SSH via Tailscale"
-$ExistingRule = Get-NetFirewallRule -DisplayName $RuleName -ErrorAction SilentlyContinue
-
-if ($ExistingRule) {
-    $ExistingRule | Remove-NetFirewallRule
-}
-
-New-NetFirewallRule `
-    -DisplayName $RuleName `
-    -Direction Inbound `
-    -Action Allow `
-    -Protocol TCP `
-    -LocalAddress $TailscaleIp `
-    -LocalPort $ListenPort
-
-Write-Host "Forwarding $TailscaleIp`:$ListenPort -> $WslIp`:22"
-```
-
-执行：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File C:\Scripts\update-wsl-ssh-portproxy.ps1
+powershell -ExecutionPolicy Bypass -File C:\Scripts\update-wsl-ssh-portproxy.ps1 -Distro Ubuntu -ListenPort 2222
 ```
 
 查看端口代理：
@@ -267,7 +282,7 @@ WSL IP 变化时，端口代理需要刷新。可以创建计划任务，让 Win
 管理员 PowerShell：
 
 ```powershell
-$Action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -File C:\Scripts\update-wsl-ssh-portproxy.ps1"
+$Action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -File C:\Scripts\update-wsl-ssh-portproxy.ps1 -Distro Ubuntu -ListenPort 2222"
 $Trigger = New-ScheduledTaskTrigger -AtLogOn
 $Principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -RunLevel Highest
 Register-ScheduledTask -TaskName "Update WSL SSH PortProxy" -Action $Action -Trigger $Trigger -Principal $Principal -Force
@@ -278,6 +293,27 @@ Register-ScheduledTask -TaskName "Update WSL SSH PortProxy" -Action $Action -Tri
 ## 8. 从 Mac 测试 SSH
 
 先确认 Mac 已连接 Tailscale：
+
+如果官网已经显示 Mac 加入 tailnet，但 macOS 终端里 `tailscale status` 提示 `command not found`，通常只是 Tailscale App 没有把 CLI 加到 shell 的 `PATH`。先试完整路径：
+
+```bash
+/Applications/Tailscale.app/Contents/MacOS/Tailscale status
+```
+
+如果这个命令可用，可以加一个 shell alias：
+
+```bash
+echo 'alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+如果安装的是 Tailscale Standalone 版本，也可以在 macOS Tailscale App 中打开：
+
+```text
+Tailscale -> Settings -> CLI integration -> Show me how -> Install Now
+```
+
+这会把 `tailscale` 命令安装到 `/usr/local/bin/tailscale`。之后再运行：
 
 ```bash
 tailscale status
@@ -467,6 +503,45 @@ Mac -> Tailscale -> WSL Tailscale IP -> WSL SSH
 
 ## 15. 常见问题
 
+### 执行端口转发脚本时提示 Cannot detect WSL IP
+
+这个错误表示 Windows 脚本没有从 WSL 里读到 Linux IP。先在 Windows PowerShell 中检查发行版名称：
+
+```powershell
+wsl -l -v
+```
+
+确认运行 `C:\Scripts\update-wsl-ssh-portproxy.ps1` 时传入的 `-Distro` 和输出中的名称完全一致。常见情况是示例里写的是
+`Ubuntu-24.04`，但你的机器实际显示为 `Ubuntu`。
+
+然后在 Windows PowerShell 中直接测试：
+
+```powershell
+wsl.exe -d Ubuntu-24.04 -- hostname -I
+```
+
+如果你的发行版名称不是 `Ubuntu-24.04`，把命令里的名称替换成 `wsl -l -v` 看到的实际名称。这个命令应该输出类似
+`172.28.x.x` 的地址。
+
+如果没有输出，先启动一次 WSL：
+
+```powershell
+wsl -d Ubuntu-24.04
+```
+
+进入 WSL 后检查网络：
+
+```bash
+hostname -I
+ip -4 addr show eth0
+```
+
+确认能看到 WSL 的 IPv4 后，重新运行端口转发脚本，并在 UAC 提示中确认管理员权限：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File C:\Scripts\update-wsl-ssh-portproxy.ps1 -Distro Ubuntu-24.04 -ListenPort 2222
+```
+
 ### Mac SSH 连接超时
 
 检查：
@@ -493,7 +568,7 @@ hostname -I
 如果 WSL IP 变了，重新运行：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File C:\Scripts\update-wsl-ssh-portproxy.ps1
+powershell -ExecutionPolicy Bypass -File C:\Scripts\update-wsl-ssh-portproxy.ps1 -Distro Ubuntu-24.04 -ListenPort 2222
 ```
 
 ### 能 SSH，但 VS Code 连接失败
